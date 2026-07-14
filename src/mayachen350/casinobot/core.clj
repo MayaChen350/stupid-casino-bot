@@ -1,4 +1,4 @@
-(ns mayachen350.stupiddiscordbot
+(ns mayachen350.casinobot.core
   (:gen-class))
 
 (defn greet
