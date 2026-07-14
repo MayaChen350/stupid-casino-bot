@@ -1,8 +1,10 @@
 {:paths ["src" "resources"]
- :deps {org.clojure/clojure {:mvn/version "1.12.5"}}
+ :deps {org.clojure/clojure {:mvn/version "1.12.5"}
+        net.dv8tion/JDA {:mvn/version "6.5.0"} ; java discord API wrapper
+        io.github.cdimascio/dotenv-java {:mvn/version "3.2.0"}} ; java discord API wrapper
  :aliases
- {:run-m {:main-opts ["-m" "mayachen350.stupiddiscordbot"]}
-  :run-x {:ns-default mayachen350.stupiddiscordbot
+ {:run-m {:main-opts ["-m" "mayachen350.casinobot.core"]}
+  :run-x {:ns-default mayachen350.casinobot.core
           :exec-fn greet
           :exec-args {:name "Clojure"}}
   :build {:deps {io.github.clojure/tools.build
