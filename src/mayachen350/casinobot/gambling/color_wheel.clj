@@ -1,6 +1,7 @@
 (ns mayachen350.casinobot.gambling.color-wheel
   (:require
-   [mayachen350.casinobot.shared :refer [in-range]]))
+   [mayachen350.casinobot.shared :refer [in-range]]
+   [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]))
 
 (def tier-1-colors
   {:warm [300 120]
@@ -26,3 +27,12 @@
 
 (defn match-random-color? [color-range-key]
   (match-color? (color-range-key color-ranges) (random-hue)))
+
+(defn color-wheel-cmd-handler [event]
+  (let [color (keyword (.getOption event))]
+    (.reply event (match-random-color? color))))
+
+(def color-wheel-cmd
+  (new-cmd
+   "color_wheel" "Bet on the color wheel." color-wheel-cmd-handler
+   (with-option "STRING" "thing" "uhm the thing")))
