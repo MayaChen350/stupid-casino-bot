@@ -7,3 +7,6 @@
   (if cond
     (func val)
     (val)))
+
+(defn coll-contains? [coll value]
+  (true? (some (partial = value) coll)))
