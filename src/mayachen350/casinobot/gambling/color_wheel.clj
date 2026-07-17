@@ -1,7 +1,10 @@
 (ns mayachen350.casinobot.gambling.color-wheel
   (:require
-   [mayachen350.casinobot.shared :refer [in-range]]
-   [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]))
+   [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]
+   [mayachen350.casinobot.shared :refer [in-range]])
+  (:import
+   [net.dv8tion.jda.api.interactions.callbacks IReplyCallback]
+   [net.dv8tion.jda.api.interactions.commands CommandInteractionPayload]))
 
 (def tier-1-colors
   {:warm [300 120]
@@ -26,13 +29,16 @@
     (apply in-range (fix-color-match hue start end))))
 
 (defn match-random-color? [color-range-key]
-  (match-color? (color-range-key color-ranges) (random-hue)))
+  (match-color? (get color-ranges color-range-key) (random-hue)))
 
 (defn color-wheel-cmd-handler [event]
-  (let [color (keyword (.getOption event))]
-    (.reply event (match-random-color? color))))
+  (println "Color range function triggered" "with" (CommandInteractionPayload/.getOption event "thing"))
+  (let [color (keyword (->
+                        (CommandInteractionPayload/.getOption event "thing")
+                        (.getAsString)))]
+    (.queue (IReplyCallback/.reply event (str (match-random-color? color))))))
 
 (def color-wheel-cmd
   (new-cmd
    "color_wheel" "Bet on the color wheel." color-wheel-cmd-handler
-   (with-option "STRING" "thing" "uhm the thing")))
+   (with-option "STRING" "thing" "uhm the thing" :required)))

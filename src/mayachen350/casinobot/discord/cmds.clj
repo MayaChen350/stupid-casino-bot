@@ -1,13 +1,12 @@
 (ns mayachen350.casinobot.discord.cmds
-  (:import [net.dv8tion.jda.api.interactions.commands.build Commands]
-           [net.dv8tion.jda.api.interactions.commands OptionType]
-           [net.dv8tion.jda.api.interactions.commands.build OptionData]
-           [net.dv8tion.jda.api.interactions.commands.build CommandData]
+  (:import [net.dv8tion.jda.api JDA]
            [net.dv8tion.jda.api.interactions InteractionContextType]
            [net.dv8tion.jda.api.interactions IntegrationType]
-           [net.dv8tion.jda.api JDA]
-           [net.dv8tion.jda.api.requests.restaction CommandListUpdateAction]
-           [net.dv8tion.jda.api.interactions.commands.build SlashCommandData]))
+           [net.dv8tion.jda.api.interactions.commands OptionType]
+           [net.dv8tion.jda.api.interactions.commands.build Commands]
+           [net.dv8tion.jda.api.interactions.commands.build CommandData]
+           [net.dv8tion.jda.api.interactions.commands.build SlashCommandData]
+           [net.dv8tion.jda.api.requests.restaction CommandListUpdateAction]))
 
 (defn new-cmd
   "Example:
@@ -33,25 +32,18 @@
 (defn with-option
   "e.g. (with-option \"INTEGER\" \"num\" \"A number\" :required )"
   ([option-type name description]
-   #(with-option % option-type name description nil))
+   (with-option option-type name description nil))
 
-  ([slash-cmd option-type name description required?]
-   (SlashCommandData/.addOption slash-cmd
-                                (OptionType/valueOf option-type)
-                                name
-                                description
-                                (= :required required?))))
-
-(defmacro make-cases [cmds]
-  `(mapcat #(let [cmd-name# (first %)
-                  handler# (last %)]
-              [cmd-name# (partial handler#)])
-           ~cmds))
+  ([option-type name description required?]
+   #(SlashCommandData/.addOption %
+                                 (OptionType/valueOf option-type)
+                                 name
+                                 description
+                                 (= :required required?))))
 
 (defn slash-commands-handler [cmds]
-  [(fn [event] ;; cmds handlers
-     ((case (.getName event) (make-cases cmds))
-      event))
+  [(fn [event cmds-table] ;; cmds handlers
+     ((get cmds-table (.getName event)) event))
    (fn [jda] ;; cmds register
      (let [cmds-list (JDA/.updateCommands jda)]
        (.queue
