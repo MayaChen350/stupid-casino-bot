@@ -1,4 +1,4 @@
-(ns mayachen350.casinobot.gambling.color-wheel
+(ns mayachen350.casinobot.gambling.color-wheel.core
   (:require
    [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]
    [mayachen350.casinobot.shared :refer [in-range]])

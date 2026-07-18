@@ -1,4 +1,4 @@
-{:paths ["src" "resources"]
+{:paths ["src" "java" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.12.5"}
         net.dv8tion/JDA {:mvn/version "6.5.0"} ; java discord API wrapper
         io.github.cdimascio/dotenv-java {:mvn/version "3.2.0"}} ; java discord API wrapper
