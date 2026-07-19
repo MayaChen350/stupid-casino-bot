@@ -1,7 +1,11 @@
 (ns mayachen350.casinobot.gambling.color-wheel.core
   (:require
+   [clojure.java.io :as io]
+   [clojure.java.shell :refer [sh]]
    [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]
-   [mayachen350.casinobot.shared :refer [in-range]])
+   [mayachen350.casinobot.discord.components :refer [new-media-item]]
+   [mayachen350.casinobot.shared :refer [in-range]]
+   [mayachen350.casinobot.gambling.color-wheel.render :as render])
   (:import
    [net.dv8tion.jda.api.interactions.callbacks IReplyCallback]
    [net.dv8tion.jda.api.interactions.commands CommandInteractionPayload]))
@@ -15,7 +19,7 @@
    tier-1-colors))
 
 (defn random-hue []
-  (+ 1 (rand-int 360)))
+  (rand-int 360))
 
 (defn fix-color-match [hue start end]
   (if (> start end)
@@ -32,11 +36,15 @@
   (match-color? (get color-ranges color-range-key) (random-hue)))
 
 (defn color-wheel-cmd-handler [event]
-  (println "Color range function triggered" "with" (CommandInteractionPayload/.getOption event "thing"))
-  (let [color (keyword (->
-                        (CommandInteractionPayload/.getOption event "thing")
-                        (.getAsString)))]
-    (.queue (IReplyCallback/.reply event (str (match-random-color? color))))))
+  (let [picked-hue (random-hue)
+        color-range (->
+                     (CommandInteractionPayload/.getOption event "thing")
+                     (.getAsString))
+        match? (match-color? ((keyword color-range) color-ranges) picked-hue)]
+    (->
+     (IReplyCallback/.replyComponents event (java.util.ArrayList. [(render/make-response picked-hue color-range match?)]))
+     (.useComponentsV2)
+     (.queue))))
 
 (def color-wheel-cmd
   (new-cmd

@@ -1,8 +1,9 @@
 (ns mayachen350.casinobot.gambling.color-wheel.render
   (:require
-   [clojure.java.io]
-   [clojure.java.shell :refer [sh]])
-  (:import [mayachen350.casinobot.extras Crc]))
+   [clojure.java.io :as io]
+   [mayachen350.casinobot.discord.components :as comp])
+  (:import [mayachen350.casinobot.extras Crc]
+           [java.nio.file Files Paths]))
 
 ;; Table made from pasting: 
 ;;
@@ -383,13 +384,13 @@
 (def file-crc-offset 0x2c)
 (def file-crc-len (- 0x2f file-crc-offset))
 
-(defn change-color-file [hue]
-  (let [filename (str "resources/.cached/" hue ".png")
-        rgb-bytes (get hue-to-rgb-array hue)
+(defn make-color-file [filename hue]
+  (with-open [in (io/input-stream "resources/color.png")
+              out (io/output-stream filename)]
+    (io/copy in out))
+  (let [rgb-bytes (get hue-to-rgb-array hue)
         plte-bytes-container (byte-array file-plte-len)]
-    (if-not (.exists (clojure.java.io/file filename))
-      (sh "cp" "resources/color.png" filename))
-    (with-open [f (java.io.RandomAccessFile. filename  "rw")]
+    (with-open [f (java.io.RandomAccessFile. filename "rw")]
       (doto f
         (.seek file-rgb-offset)
         (.write rgb-bytes)
@@ -399,3 +400,16 @@
            (let [new-crc (Crc/makeCrc plte-bytes-container)]
              (.seek f file-crc-offset)
              (.writeInt f new-crc))))))))
+
+(defn handle-color-file [hue]
+  (let [hue-filename (str ".cached/" hue ".png")]
+    (when (nil? (io/resource hue-filename))
+      (make-color-file (str "resources/" hue-filename) hue))
+    (comp/new-media-item :res hue-filename)))
+
+(defn make-response [picked-hue color-range color-matched?]
+  (comp/new-container
+   (comp/new-textdisplay (str "You picked " (name color-range) ".\n\n"
+                              "You **" (if color-matched? "won" "lost") "!**"))
+                               ;; TODO: use colornames.org API for silly color names
+   (comp/new-media-gallery (handle-color-file picked-hue))))
