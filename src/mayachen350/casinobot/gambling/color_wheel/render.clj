@@ -1,7 +1,9 @@
 (ns mayachen350.casinobot.gambling.color-wheel.render
   (:require
    [clojure.java.io :as io]
-   [mayachen350.casinobot.discord.components :as comp])
+   [mayachen350.casinobot.discord.components :as comp]
+   [clj-http.client :as client]
+   [clojure.data.json :as json])
   (:import [mayachen350.casinobot.extras Crc]
            [java.nio.file Files Paths]))
 
@@ -407,9 +409,22 @@
       (make-color-file (str "resources/" hue-filename) hue))
     (comp/new-media-item :res hue-filename)))
 
+(defn dec-rgb-to-hex-str [[r g b]]
+  (format "%02x%02x%02x" r g b))
+
+(def fetch-color-name
+  (memoize
+   (fn [rgb-hex]
+     (-> (client/get (str "https://colornames.org/search/json/?hex=" rgb-hex)) 
+         (:body)
+         (json/read-str :key-fn keyword) 
+         (:name)
+         (#(if (nil? %) (str "#" rgb-hex) %))))))
+
 (defn make-response [picked-hue color-range color-matched?]
   (comp/new-container
    (comp/new-textdisplay (str "You picked " (name color-range) ".\n\n"
-                              "You **" (if color-matched? "won" "lost") "!**"))
+                              "The color was " (fetch-color-name (dec-rgb-to-hex-str (hue-to-rgb-array picked-hue))) "!\n"
+                              "## You **" (if color-matched? "won" "lost") "!**"))
                                ;; TODO: use colornames.org API for silly color names
    (comp/new-media-gallery (handle-color-file picked-hue))))
