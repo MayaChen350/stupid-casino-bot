@@ -1,11 +1,12 @@
 (ns mayachen350.casinobot.discord.cmds
   (:import [net.dv8tion.jda.api JDA]
-           [net.dv8tion.jda.api.interactions InteractionContextType]
-           [net.dv8tion.jda.api.interactions IntegrationType]
-           [net.dv8tion.jda.api.interactions.commands OptionType]
-           [net.dv8tion.jda.api.interactions.commands.build Commands]
-           [net.dv8tion.jda.api.interactions.commands.build CommandData]
-           [net.dv8tion.jda.api.interactions.commands.build SlashCommandData]
+           [net.dv8tion.jda.api.interactions IntegrationType InteractionContextType]
+           [net.dv8tion.jda.api.interactions.commands OptionType Command$Choice]
+           [net.dv8tion.jda.api.interactions.commands.build
+            CommandData
+            Commands
+            OptionData
+            SlashCommandData]
            [net.dv8tion.jda.api.requests.restaction CommandListUpdateAction]))
 
 (defn new-cmd
@@ -34,12 +35,23 @@
   ([option-type name description]
    (with-option option-type name description nil))
 
-  ([option-type name description required?]
-   #(SlashCommandData/.addOption %
-                                 (OptionType/valueOf option-type)
-                                 name
-                                 description
-                                 (= :required required?))))
+  ([option-type name description required? & modifiers]
+   (fn [cmds]
+     (SlashCommandData/.addOptions
+      cmds
+      (java.util.ArrayList. [(reduce #(%2 %1)
+                                     (OptionData. (OptionType/valueOf option-type)
+                                                  name
+                                                  description
+                                                  (= :required required?))
+                                     modifiers)])))))
+
+(defn with-choices [choices]
+  (fn [option-data]
+    (OptionData/.addChoices option-data
+                            (mapv (fn [[name value]]
+                                    (Command$Choice. name (if (nil? value) name nil)))
+                                  choices))))
 
 (defn slash-commands-handler [cmds]
   [(fn [event cmds-table] ;; cmds handlers

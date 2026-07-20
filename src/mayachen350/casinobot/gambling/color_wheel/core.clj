@@ -1,11 +1,9 @@
 (ns mayachen350.casinobot.gambling.color-wheel.core
   (:require
-   [clojure.java.io :as io]
-   [clojure.java.shell :refer [sh]]
-   [mayachen350.casinobot.discord.cmds :refer [new-cmd with-option]]
-   [mayachen350.casinobot.discord.components :refer [new-media-item]]
-   [mayachen350.casinobot.shared :refer [in-range]]
-   [mayachen350.casinobot.gambling.color-wheel.render :as render])
+   [mayachen350.casinobot.discord.cmds :refer [new-cmd with-choices
+                                               with-option]]
+   [mayachen350.casinobot.gambling.color-wheel.render :as render]
+   [mayachen350.casinobot.shared :refer [in-range]])
   (:import
    [net.dv8tion.jda.api.interactions.callbacks IReplyCallback]
    [net.dv8tion.jda.api.interactions.commands CommandInteractionPayload]))
@@ -49,4 +47,5 @@
 (def color-wheel-cmd
   (new-cmd
    "color_wheel" "Bet on the color wheel." color-wheel-cmd-handler
-   (with-option "STRING" "thing" "uhm the thing" :required)))
+   (with-option "STRING" "thing" "uhm the thing" :required
+     (with-choices (vec (map #(vector (name %)) (keys color-ranges)))))))
